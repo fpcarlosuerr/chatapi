@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat com GPT</title>
+    <script>
+        async function enviarMensagem() {
+            const input = document.getElementById("mensagem");
+            const texto = input.value;
+
+            const respostaDiv = document.getElementById("resposta");
+            respostaDiv.innerHTML += `<div class="mensagem usuario"><strong>Você:</strong><br>${texto}</div>`;
+            respostaDiv.scrollTop = respostaDiv.scrollHeight;
+
+
+
+            const resposta = await fetch("/api/chat/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie('csrftoken')
+                },
+                body: JSON.stringify({ message: texto })
+            });
+
+            const dados = await resposta.json();
+
+            if (dados.response) {
+                respostaDiv.innerHTML += `<div class="mensagem ia"><strong>GPT:</strong><br>${formatarResposta(dados.response)}</div>`;
+
+            } else {
+                respostaDiv.innerHTML += `<p><em>Erro:</em> ${dados.error}</p>`;
+            }
+
+            input.value = "";
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+               function formatarResposta(texto) {
+            // Escape básico e quebra de linha
+            return texto
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\n/g, "<br>");
+        }
+ 
+    </script>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    #resposta {
+        border: 1px solid #ccc;
+        padding: 15px;
+        height: 400px;
+        overflow-y: auto;
+        background-color: #fff;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+
+    .mensagem {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 8px;
+        line-height: 1.5em;
+    }
+
+    .usuario {
+        background-color: #dcf8c6;
+        align-self: flex-end;
+    }
+
+    .ia {
+        background-color: #ececec;
+        align-self: flex-start;
+        white-space: pre-wrap;
+    }
+
+    #mensagem {
+        width: 80%;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 10px;
+        font-size: 16px;
+    }
+</style>
+
+</head>
+<body>
+    <h1>Chat com ChatGPT</h1>
+    <div id="resposta" style="border:1px solid #ccc; padding:10px; height:300px; overflow:auto;"></div>
+    <input type="text" id="mensagem" placeholder="Digite sua pergunta..." />
+    <button onclick="enviarMensagem()">Enviar</button>
+</body>
+</html>
